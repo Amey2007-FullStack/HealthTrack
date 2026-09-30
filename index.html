@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HealthTrack - Book Appointment</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <div class="app-wrapper">
@@ -13,7 +15,7 @@
     <header id="app-header"></header>
 
     <!-- Main Content -->
-    main class="main-content">
+    <main class="main-content">
       <div class="page-header">
         <h1 class="page-title">Book Patient Appointment</h1>
         <p class="page-subtitle">Schedule a consultation with our specialist doctors across departments.</p>
@@ -28,16 +30,17 @@
       <!-- Booking Form Card -->
       <div class="card">
         <h2 class="card-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
-            <path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
-            <path d="M16 2v4M8 2v4M3 10h18"/>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="color: var(--primary);">
+            <path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
           </svg>
           Appointment Booking Form
         </h2>
 
         <form id="appointment-form" novalidate>
           <div class="form-grid">
-            
+
             <!-- Patient Selection / Custom Input -->
             <div class="form-group">
               <label for="patient-select">Patient Name *</label>
@@ -49,13 +52,8 @@
                 </select>
               </div>
               <!-- Hidden Input for New Patient -->
-              <input 
-                type="text" 
-                id="new-patient-input" 
-                class="form-control hidden" 
-                placeholder="Enter full name of new patient"
-                style="margin-top: 0.5rem;"
-              />
+              <input type="text" id="new-patient-input" class="form-control hidden"
+                placeholder="Enter full name of new patient" style="margin-top: 0.5rem;" />
               <span class="form-hint">Choose from existing patients or type a new patient name.</span>
             </div>
 
@@ -102,13 +100,15 @@
             <!-- Consultation Fee Preview -->
             <div class="form-group">
               <label>Estimated Consultation Fee</label>
-              <input type="text" id="fee-display" class="form-control" value="₹0" readonly style="background-color: #f1f5f9; font-weight: 600; color: var(--primary);" />
+              <input type="text" id="fee-display" class="form-control" value="₹0" readonly
+                style="background-color: #f1f5f9; font-weight: 600; color: var(--primary);" />
             </div>
 
             <!-- Remarks / Clinical Notes -->
             <div class="form-group full-width">
               <label for="appointment-remarks">Clinical Remarks / Symptoms (Optional)</label>
-              <textarea id="appointment-remarks" class="form-control" rows="3" placeholder="Describe symptoms or reason for visit..."></textarea>
+              <textarea id="appointment-remarks" class="form-control" rows="3"
+                placeholder="Describe symptoms or reason for visit..."></textarea>
             </div>
 
           </div>
@@ -117,7 +117,7 @@
             <button type="reset" class="btn btn-secondary" id="btn-reset-form">Clear Form</button>
             <button type="submit" class="btn btn-primary">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"/>
+                <polyline points="20 6 9 17 4 12" />
               </svg>
               Confirm & Book Appointment
             </button>
@@ -298,8 +298,8 @@
         // Calls shared function in app.js
         if (isDoubleBooked(doctor, dateVal, timeSlot)) {
           showAlert(
-            'danger', 
-            'Double-Booking Conflict Alert!', 
+            'danger',
+            'Double-Booking Conflict Alert!',
             `${doctor} already has a Confirmed appointment on ${dateVal} at ${timeSlot}. Please choose a different time slot or doctor.`
           );
           return;
@@ -332,8 +332,8 @@
 
         // Show Success Banner
         showAlert(
-          'success', 
-          'Appointment Successfully Booked!', 
+          'success',
+          'Appointment Successfully Booked!',
           `Booking ID <strong>${newAptId}</strong> for patient <strong>${patientName}</strong> with <strong>${doctor}</strong> (${department}) on <strong>${dateVal} at ${timeSlot}</strong> has been confirmed. Consultation Bill: <strong>₹${consultationFee}</strong> (Pending Payment).`
         );
 
@@ -349,4 +349,5 @@
     });
   </script>
 </body>
+
 </html>
