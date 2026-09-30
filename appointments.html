@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthTrack - Appointments List</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Header/Navbar Container -->
+    <header id="app-header"></header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 class="page-title">Appointments Directory</h1>
+          <p class="page-subtitle">View, search, filter, and manage patient bookings and payment statuses.</p>
+        </div>
+        <a href="index.html" class="btn btn-primary btn-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Booking
+        </a>
+      </div>
+
+      <!-- Controls & Filter Card -->
+      <div class="card" style="padding: 1.25rem;">
+        <div class="controls-bar">
+          <div class="search-filter-group">
+            <!-- Search Box -->
+            <div class="form-group" style="flex: 1;">
+              <input 
+                type="text" 
+                id="search-patient" 
+                class="form-control" 
+                placeholder="🔍 Search patient by name..." 
+              />
+            </div>
+            <!-- Status Filter -->
+            <div class="form-group" style="min-width: 180px;">
+              <select id="filter-status" class="form-control">
+                <option value="ALL">All Statuses</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <!-- Payment Filter -->
+            <div class="form-group" style="min-width: 180px;">
+              <select id="filter-payment" class="form-control">
+                <option value="ALL">All Payment Statuses</option>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;" id="records-counter">
+            Showing 0 records
+          </div>
+        </div>
+
+        <!-- Appointments Table -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Consultation Fee</th>
+                <th>Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="appointments-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="empty-state" class="hidden" style="text-align: center; padding: 3rem 1rem;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin-bottom: 1rem;">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12h8"/>
+          </svg>
+          <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 600;">No appointments found</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search criteria or booking a new appointment.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Container -->
+    <footer id="app-footer"></footer>
+  </div>
+
+  <!-- Shared Application JS -->
+  <script src="app.js"></script>
+
+  <!-- Page-Specific Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Render Header & Footer
+      renderHeader('appointments');
+      renderFooter();
+
+      // DOM Elements
+      const searchInput = document.getElementById('search-patient');
+      const statusFilter = document.getElementById('filter-status');
+      const paymentFilter = document.getElementById('filter-payment');
+      const tbody = document.getElementById('appointments-tbody');
+      const recordsCounter = document.getElementById('records-counter');
+      const emptyState = document.getElementById('empty-state');
+
+      // Function to render appointments table
+      function renderTable() {
+        const appointments = getAppointments();
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedStatus = statusFilter.value;
+        const selectedPayment = paymentFilter.value;
+
+        // Apply filtering logic
+        const filtered = appointments.filter(apt => {
+          const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm) ||
+                                apt.doctor.toLowerCase().includes(searchTerm) ||
+                                apt.id.toLowerCase().includes(searchTerm);
+          const matchesStatus = (selectedStatus === 'ALL') || (apt.status === selectedStatus);
+          const matchesPayment = (selectedPayment === 'ALL') || (apt.paymentStatus === selectedPayment);
+
+          return matchesSearch && matchesStatus && matchesPayment;
+        });
+
+        recordsCounter.textContent = `Showing ${filtered.length} of ${appointments.length} appointments`;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+        tbody.innerHTML = '';
+
+        filtered.forEach(apt => {
+          const tr = document.createElement('tr');
+
+          // Status Badges CSS mapping
+          let statusBadgeClass = 'badge-confirmed';
+          if (apt.status === 'Completed') statusBadgeClass = 'badge-completed';
+          if (apt.status === 'Cancelled') statusBadgeClass = 'badge-cancelled';
+
+          let paymentBadgeClass = apt.paymentStatus === 'Paid' ? 'badge-paid' : 'badge-pending';
+
+          // Action Buttons construction
+          let actionButtonsHTML = '';
+          
+          if (apt.status === 'Confirmed') {
+            actionButtonsHTML += `
+              <button 
+                class="btn btn-outline-success btn-sm" 
+                onclick="updateAppointmentStatus('${apt.id}', 'Completed')"
+                title="Mark appointment as completed"
+              >
+                ✓ Complete
+              </button>
+              <button 
+                class="btn btn-outline-danger btn-sm" 
+                onclick="updateAppointmentStatus('${apt.id}', 'Cancelled')"
+                title="Cancel appointment"
+              >
+                ✕ Cancel
+              </button>
+            `;
+          }
+
+          if (apt.paymentStatus === 'Pending') {
+            actionButtonsHTML += `
+              <button 
+                class="btn btn-secondary btn-sm" 
+                style="color: var(--warning-text); border-color: var(--warning);"
+                onclick="markBillAsPaid('${apt.id}')"
+                title="Mark consultation bill as paid"
+              >
+                💳 Pay Fee
+              </button>
+            `;
+          }
+
+          if (apt.status !== 'Confirmed' && apt.paymentStatus === 'Paid') {
+            actionButtonsHTML = `<span style="font-size: 0.82rem; color: var(--text-muted);">No action needed</span>`;
+          }
+
+          tr.innerHTML = `
+            <td>
+              <strong style="color: var(--secondary); display: block;">${apt.date}</strong>
+              <span style="font-size: 0.82rem; color: var(--text-muted);">${apt.timeSlot}</span>
+            </td>
+            <td>
+              <strong style="color: var(--text-main);">${escapeHtml(apt.patientName)}</strong>
+              <span style="display: block; font-size: 0.78rem; color: var(--text-muted);">${apt.id}</span>
+            </td>
+            <td>${escapeHtml(apt.doctor)}</td>
+            <td><span class="badge" style="background-color: #f1f5f9; color: var(--secondary);">${escapeHtml(apt.department)}</span></td>
+            <td>
+              <span class="badge ${statusBadgeClass}">
+                <span class="badge-dot"></span>
+                ${apt.status}
+              </span>
+            </td>
+            <td><strong>₹${apt.fee}</strong></td>
+            <td>
+              <span class="badge ${paymentBadgeClass}">
+                <span class="badge-dot"></span>
+                ${apt.paymentStatus}
+              </span>
+            </td>
+            <td>
+              <div class="action-btn-group">
+                ${actionButtonsHTML}
+              </div>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      // XSS Protection helper
+      function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>"']/g, function(m) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+        });
+      }
+
+      // Global functions attached to window for row actions
+      window.updateAppointmentStatus = function(aptId, newStatus) {
+        const appointments = getAppointments();
+        const index = appointments.findIndex(a => a.id === aptId);
+        if (index !== -1) {
+          appointments[index].status = newStatus;
+          saveAppointments(appointments);
+          renderTable();
+        }
+      };
+
+      window.markBillAsPaid = function(aptId) {
+        const appointments = getAppointments();
+        const index = appointments.findIndex(a => a.id === aptId);
+        if (index !== -1) {
+          appointments[index].paymentStatus = 'Paid';
+          saveAppointments(appointments);
+          renderTable();
+        }
+      };
+
+      // Event Listeners for Filters & Search
+      searchInput.addEventListener('input', renderTable);
+      statusFilter.addEventListener('change', renderTable);
+      paymentFilter.addEventListener('change', renderTable);
+
+      // Initial table render
+      renderTable();
+    });
+  </script>
+</body>
+</html>

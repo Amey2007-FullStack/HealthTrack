@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthTrack - Book Appointment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Header/Navbar Container -->
+    <header id="app-header"></header>
+
+    <!-- Main Content -->
+    main class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Book Patient Appointment</h1>
+        <p class="page-subtitle">Schedule a consultation with our specialist doctors across departments.</p>
+      </div>
+
+      <!-- Feedback Alert Banner -->
+      <div id="booking-alert" class="alert hidden" role="alert">
+        <div class="alert-icon" id="alert-icon"></div>
+        <div class="alert-message" id="alert-message"></div>
+      </div>
+
+      <!-- Booking Form Card -->
+      <div class="card">
+        <h2 class="card-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
+            <path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+            <path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          Appointment Booking Form
+        </h2>
+
+        <form id="appointment-form" novalidate>
+          <div class="form-grid">
+            
+            <!-- Patient Selection / Custom Input -->
+            <div class="form-group">
+              <label for="patient-select">Patient Name *</label>
+              <div class="patient-input-container">
+                <select id="patient-select" class="form-control" required>
+                  <option value="" disabled selected>-- Select Patient --</option>
+                  <!-- Populated dynamically -->
+                  <option value="__NEW__">+ Enter New Patient Name...</option>
+                </select>
+              </div>
+              <!-- Hidden Input for New Patient -->
+              <input 
+                type="text" 
+                id="new-patient-input" 
+                class="form-control hidden" 
+                placeholder="Enter full name of new patient"
+                style="margin-top: 0.5rem;"
+              />
+              <span class="form-hint">Choose from existing patients or type a new patient name.</span>
+            </div>
+
+            <!-- Department Selection -->
+            <div class="form-group">
+              <label for="department-select">Department *</label>
+              <select id="department-select" class="form-control" required>
+                <option value="" disabled selected>-- Select Department --</option>
+                <!-- Populated dynamically from localStorage -->
+              </select>
+              <span class="form-hint" id="fee-hint">Consultation fee will be calculated automatically.</span>
+            </div>
+
+            <!-- Doctor Selection (Filtered by Department) -->
+            <div class="form-group">
+              <label for="doctor-select">Doctor *</label>
+              <select id="doctor-select" class="form-control" required disabled>
+                <option value="" disabled selected>-- Select Department First --</option>
+              </select>
+            </div>
+
+            <!-- Date Picker -->
+            <div class="form-group">
+              <label for="appointment-date">Appointment Date *</label>
+              <input type="date" id="appointment-date" class="form-control" required />
+              <span class="form-hint">Bookings cannot be scheduled for past dates.</span>
+            </div>
+
+            <!-- Time Slot Selection -->
+            <div class="form-group">
+              <label for="timeslot-select">Time Slot *</label>
+              <select id="timeslot-select" class="form-control" required>
+                <option value="" disabled selected>-- Select Time Slot --</option>
+                <option value="09:00 AM">09:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="02:00 PM">02:00 PM</option>
+                <option value="03:00 PM">03:00 PM</option>
+                <option value="04:00 PM">04:00 PM</option>
+                <option value="05:00 PM">05:00 PM</option>
+              </select>
+            </div>
+
+            <!-- Consultation Fee Preview -->
+            <div class="form-group">
+              <label>Estimated Consultation Fee</label>
+              <input type="text" id="fee-display" class="form-control" value="₹0" readonly style="background-color: #f1f5f9; font-weight: 600; color: var(--primary);" />
+            </div>
+
+            <!-- Remarks / Clinical Notes -->
+            <div class="form-group full-width">
+              <label for="appointment-remarks">Clinical Remarks / Symptoms (Optional)</label>
+              <textarea id="appointment-remarks" class="form-control" rows="3" placeholder="Describe symptoms or reason for visit..."></textarea>
+            </div>
+
+          </div>
+
+          <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            <button type="reset" class="btn btn-secondary" id="btn-reset-form">Clear Form</button>
+            <button type="submit" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Confirm & Book Appointment
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <!-- Footer Container -->
+    <footer id="app-footer"></footer>
+  </div>
+
+  <!-- Shared Application JS -->
+  <script src="app.js"></script>
+
+  <!-- Page-Specific Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render layout navbar & footer
+      renderHeader('book');
+      renderFooter();
+
+      // DOM Elements
+      const patientSelect = document.getElementById('patient-select');
+      const newPatientInput = document.getElementById('new-patient-input');
+      const deptSelect = document.getElementById('department-select');
+      const docSelect = document.getElementById('doctor-select');
+      const dateInput = document.getElementById('appointment-date');
+      const timeSelect = document.getElementById('timeslot-select');
+      const feeDisplay = document.getElementById('fee-display');
+      const remarksInput = document.getElementById('appointment-remarks');
+      const bookingForm = document.getElementById('appointment-form');
+      const alertBox = document.getElementById('booking-alert');
+      const alertIcon = document.getElementById('alert-icon');
+      const alertMsg = document.getElementById('alert-message');
+
+      // Set date input minimum value to Today's date (YYYY-MM-DD)
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.setAttribute('min', today);
+      dateInput.value = today;
+
+      // Populate Patients dropdown
+      function loadPatientOptions() {
+        const patients = getPatients();
+        patientSelect.innerHTML = '<option value="" disabled selected>-- Select Patient --</option>';
+        patients.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          patientSelect.appendChild(opt);
+        });
+        // Option to add custom new patient
+        const newOpt = document.createElement('option');
+        newOpt.value = '__NEW__';
+        newOpt.textContent = '+ Add New Patient...';
+        patientSelect.appendChild(newOpt);
+      }
+      loadPatientOptions();
+
+      // Patient select change listener (toggle new patient input)
+      patientSelect.addEventListener('change', () => {
+        if (patientSelect.value === '__NEW__') {
+          newPatientInput.classList.remove('hidden');
+          newPatientInput.focus();
+        } else {
+          newPatientInput.classList.add('hidden');
+          newPatientInput.value = '';
+        }
+      });
+
+      // Populate Departments dropdown
+      const depts = getDepartments();
+      depts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.name;
+        opt.textContent = `${d.name} (₹${d.fee})`;
+        deptSelect.appendChild(opt);
+      });
+
+      // Department change listener -> filter doctors & update fee display
+      deptSelect.addEventListener('change', () => {
+        const selectedDept = deptSelect.value;
+        const fee = getFeeForDepartment(selectedDept);
+        feeDisplay.value = `₹${fee}`;
+
+        // Filter doctors by selected department
+        const allDoctors = getDoctors();
+        const filteredDocs = allDoctors.filter(doc => doc.department === selectedDept);
+
+        docSelect.innerHTML = '<option value="" disabled selected>-- Select Doctor --</option>';
+        filteredDocs.forEach(doc => {
+          const opt = document.createElement('option');
+          opt.value = doc.name;
+          opt.textContent = doc.name;
+          docSelect.appendChild(opt);
+        });
+        docSelect.disabled = false;
+      });
+
+      // Reset form event handler
+      document.getElementById('btn-reset-form').addEventListener('click', () => {
+        newPatientInput.classList.add('hidden');
+        docSelect.innerHTML = '<option value="" disabled selected>-- Select Department First --</option>';
+        docSelect.disabled = true;
+        feeDisplay.value = '₹0';
+        hideAlert();
+      });
+
+      // Helper function to display success/error alerts
+      function showAlert(type, title, text) {
+        alertBox.className = `alert alert-${type}`;
+        if (type === 'danger') {
+          alertIcon.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>`;
+        } else {
+          alertIcon.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>`;
+        }
+        alertMsg.innerHTML = `<strong>${title}</strong> <span>${text}</span>`;
+        alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function hideAlert() {
+        alertBox.classList.add('hidden');
+      }
+
+      // Form submission handler
+      bookingForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        // Determine final patient name
+        let patientName = '';
+        if (patientSelect.value === '__NEW__') {
+          patientName = newPatientInput.value.trim();
+          if (!patientName) {
+            showAlert('danger', 'Validation Error:', 'Please enter the name for the new patient.');
+            return;
+          }
+        } else {
+          patientName = patientSelect.value;
+        }
+
+        if (!patientName) {
+          showAlert('danger', 'Validation Error:', 'Please select or enter a patient name.');
+          return;
+        }
+
+        const department = deptSelect.value;
+        const doctor = docSelect.value;
+        const dateVal = dateInput.value;
+        const timeSlot = timeSelect.value;
+        const remarks = remarksInput.value.trim();
+
+        if (!department || !doctor || !dateVal || !timeSlot) {
+          showAlert('danger', 'Validation Error:', 'Please fill out all mandatory fields (Department, Doctor, Date, and Time Slot).');
+          return;
+        }
+
+        // 1. DATE VALIDATION: Check if date is in the past
+        const selectedDateObj = new Date(dateVal + 'T00:00:00');
+        const todayDateObj = new Date();
+        todayDateObj.setHours(0, 0, 0, 0);
+
+        if (selectedDateObj < todayDateObj) {
+          showAlert('danger', 'Invalid Date:', 'Appointments cannot be booked for past dates. Please pick today or a future date.');
+          return;
+        }
+
+        // 2. DOUBLE-BOOKING CHECK: Check if doctor is already booked at this date and time
+        // Calls shared function in app.js
+        if (isDoubleBooked(doctor, dateVal, timeSlot)) {
+          showAlert(
+            'danger', 
+            'Double-Booking Conflict Alert!', 
+            `${doctor} already has a Confirmed appointment on ${dateVal} at ${timeSlot}. Please choose a different time slot or doctor.`
+          );
+          return;
+        }
+
+        // Save new patient if added
+        ensurePatientExists(patientName);
+
+        // 3. SUCCESSFUL BOOKING: Create new appointment record
+        const consultationFee = getFeeForDepartment(department);
+        const newAptId = 'APT-' + Math.floor(1000 + Math.random() * 9000);
+
+        const newAppointment = {
+          id: newAptId,
+          patientName: patientName,
+          department: department,
+          doctor: doctor,
+          date: dateVal,
+          timeSlot: timeSlot,
+          status: 'Confirmed',
+          fee: consultationFee,
+          paymentStatus: 'Pending',
+          remarks: remarks || 'No specific remarks'
+        };
+
+        // Persist to localStorage
+        const appointments = getAppointments();
+        appointments.unshift(newAppointment); // prepend latest booking
+        saveAppointments(appointments);
+
+        // Show Success Banner
+        showAlert(
+          'success', 
+          'Appointment Successfully Booked!', 
+          `Booking ID <strong>${newAptId}</strong> for patient <strong>${patientName}</strong> with <strong>${doctor}</strong> (${department}) on <strong>${dateVal} at ${timeSlot}</strong> has been confirmed. Consultation Bill: <strong>₹${consultationFee}</strong> (Pending Payment).`
+        );
+
+        // Refresh patient dropdown options & reset form inputs
+        loadPatientOptions();
+        bookingForm.reset();
+        newPatientInput.classList.add('hidden');
+        docSelect.innerHTML = '<option value="" disabled selected>-- Select Department First --</option>';
+        docSelect.disabled = true;
+        feeDisplay.value = '₹0';
+        dateInput.value = today;
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthTrack - Analytics Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Header/Navbar Container -->
+    <header id="app-header"></header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 class="page-title">Executive Analytics Dashboard</h1>
+          <p class="page-subtitle">Real-time overview of appointments, revenue, department distribution & doctor workload.</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="window.location.reload()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Refresh Metrics
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. Top Summary Metric Cards Grid -->
+      <div class="metrics-grid">
+        
+        <!-- Total Appointments Card -->
+        <div class="metric-card">
+          <div class="metric-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value" id="metric-total-apts">0</span>
+            <span class="metric-label">Total Appointments</span>
+          </div>
+        </div>
+
+        <!-- Total Patients Card -->
+        <div class="metric-card">
+          <div class="metric-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value" id="metric-total-patients">0</span>
+            <span class="metric-label">Registered Patients</span>
+          </div>
+        </div>
+
+        <!-- Pending Bills Card -->
+        <div class="metric-card">
+          <div class="metric-icon amber">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value" id="metric-pending-bills">0</span>
+            <span class="metric-label" id="metric-pending-amount">Pending Bills</span>
+          </div>
+        </div>
+
+        <!-- Total Revenue Collected Card -->
+        <div class="metric-card">
+          <div class="metric-icon purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value" id="metric-total-revenue">₹0</span>
+            <span class="metric-label">Revenue Collected</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 2. Interactive Charts Grid -->
+      <div class="charts-grid">
+        
+        <!-- Donut Chart: Department-wise Visit Distribution -->
+        <div class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+            </svg>
+            Department Visit Distribution
+          </h2>
+          <div class="chart-wrapper">
+            <canvas id="deptDonutChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Bar Chart: Appointments per Doctor -->
+        <div class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Appointments per Doctor
+          </h2>
+          <div class="chart-wrapper">
+            <canvas id="doctorBarChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. Recent Activity Table -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 class="card-title" style="margin-bottom: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Recent Bookings Overview
+          </h2>
+          <a href="appointments.html" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; text-decoration: none;">View All &rarr;</a>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Patient Name</th>
+                <th>Doctor & Dept</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Bill Amount</th>
+              </tr>
+            </thead>
+            <tbody id="recent-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Container -->
+    <footer id="app-footer"></footer>
+  </div>
+
+  <!-- Shared Application JS -->
+  <script src="app.js"></script>
+
+  <!-- Dashboard Calculations & Charting JS -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Navbar & Footer
+      renderHeader('dashboard');
+      renderFooter();
+
+      // Fetch live dataset from localStorage
+      const appointments = getAppointments();
+      const patients = getPatients();
+      const departments = getDepartments();
+      const doctors = getDoctors();
+
+      // 2. Compute Metric Card Figures
+      const totalAptsCount = appointments.length;
+      const totalPatientsCount = patients.length;
+
+      // Pending Bills
+      const pendingAppointments = appointments.filter(a => a.paymentStatus === 'Pending');
+      const pendingBillsCount = pendingAppointments.length;
+      const pendingAmountTotal = pendingAppointments.reduce((sum, a) => sum + Number(a.fee || 0), 0);
+
+      // Total Revenue Collected (Paid Bills)
+      const paidAppointments = appointments.filter(a => a.paymentStatus === 'Paid');
+      const revenueTotal = paidAppointments.reduce((sum, a) => sum + Number(a.fee || 0), 0);
+
+      // Update Metric Card DOM Elements
+      document.getElementById('metric-total-apts').textContent = totalAptsCount;
+      document.getElementById('metric-total-patients').textContent = totalPatientsCount;
+      document.getElementById('metric-pending-bills').textContent = pendingBillsCount;
+      document.getElementById('metric-pending-amount').textContent = `${pendingBillsCount} Pending (₹${pendingAmountTotal.toLocaleString()})`;
+      document.getElementById('metric-total-revenue').textContent = `₹${revenueTotal.toLocaleString()}`;
+
+      // 3. Prepare Data for Department Donut Chart
+      const deptCounts = {};
+      departments.forEach(d => { deptCounts[d.name] = 0; });
+      appointments.forEach(a => {
+        if (deptCounts[a.department] !== undefined) {
+          deptCounts[a.department]++;
+        } else {
+          deptCounts[a.department] = 1;
+        }
+      });
+
+      const deptLabels = Object.keys(deptCounts);
+      const deptValues = Object.values(deptCounts);
+
+      // Render Donut Chart
+      const donutCtx = document.getElementById('deptDonutChart').getContext('2d');
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: deptLabels,
+          datasets: [{
+            data: deptValues,
+            backgroundColor: [
+              '#3b82f6', // General Medicine - Primary Blue
+              '#ef4444', // Cardiology - Red
+              '#f59e0b', // Orthopedics - Amber
+              '#10b981'  // Pediatrics - Green
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { font: { family: '-apple-system, sans-serif', size: 12 }, padding: 15 }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.label}: ${context.raw} visit(s)`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 4. Prepare Data for Doctor Bar Chart
+      const docCounts = {};
+      doctors.forEach(doc => { docCounts[doc.name] = 0; });
+      appointments.forEach(a => {
+        if (docCounts[a.doctor] !== undefined) {
+          docCounts[a.doctor]++;
+        } else {
+          docCounts[a.doctor] = 1;
+        }
+      });
+
+      const docLabels = Object.keys(docCounts);
+      const docValues = Object.values(docCounts);
+
+      // Render Bar Chart
+      const barCtx = document.getElementById('doctorBarChart').getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: docLabels,
+          datasets: [{
+            label: 'Appointments',
+            data: docValues,
+            backgroundColor: 'rgba(37, 99, 235, 0.85)',
+            borderColor: '#1d4ed8',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1, precision: 0 }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      // 5. Render Recent Activity Table (Last 5 records)
+      const recentTbody = document.getElementById('recent-tbody');
+      const recentApts = appointments.slice(0, 5); // Take top 5
+
+      recentTbody.innerHTML = recentApts.map(apt => {
+        let statusClass = 'badge-confirmed';
+        if (apt.status === 'Completed') statusClass = 'badge-completed';
+        if (apt.status === 'Cancelled') statusClass = 'badge-cancelled';
+
+        return `
+          <tr>
+            <td><strong>${apt.id}</strong></td>
+            <td>${apt.patientName}</td>
+            <td>${apt.doctor} <span style="font-size: 0.8rem; color: var(--text-muted);">(${apt.department})</span></td>
+            <td>${apt.date} at ${apt.timeSlot}</td>
+            <td><span class="badge ${statusClass}"><span class="badge-dot"></span>${apt.status}</span></td>
+            <td><strong>₹${apt.fee}</strong> <span class="badge ${apt.paymentStatus === 'Paid' ? 'badge-paid' : 'badge-pending'}" style="font-size: 0.75rem;">${apt.paymentStatus}</span></td>
+          </tr>
+        `;
+      }).join('');
+    });
+  </script>
+</body>
+</html>
