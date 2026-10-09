@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HealthTrack - Appointments List</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <div class="app-wrapper">
@@ -14,15 +16,16 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+      <div class="page-header"
+        style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
         <div>
           <h1 class="page-title">Appointments Directory</h1>
           <p class="page-subtitle">View, search, filter, and manage patient bookings and payment statuses.</p>
         </div>
         <a href="index.html" class="btn btn-primary btn-sm">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           New Booking
         </a>
@@ -34,12 +37,7 @@
           <div class="search-filter-group">
             <!-- Search Box -->
             <div class="form-group" style="flex: 1;">
-              <input 
-                type="text" 
-                id="search-patient" 
-                class="form-control" 
-                placeholder="🔍 Search patient by name..." 
-              />
+              <input type="text" id="search-patient" class="form-control" placeholder="🔍 Search patient by name..." />
             </div>
             <!-- Status Filter -->
             <div class="form-group" style="min-width: 180px;">
@@ -88,12 +86,14 @@
 
         <!-- Empty State Message -->
         <div id="empty-state" class="hidden" style="text-align: center; padding: 3rem 1rem;">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin-bottom: 1rem;">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M8 12h8"/>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"
+            style="margin-bottom: 1rem;">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12h8" />
           </svg>
           <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 600;">No appointments found</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search criteria or booking a new appointment.</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Try adjusting your search
+            criteria or booking a new appointment.</p>
         </div>
       </div>
     </main>
@@ -130,8 +130,8 @@
         // Apply filtering logic
         const filtered = appointments.filter(apt => {
           const matchesSearch = apt.patientName.toLowerCase().includes(searchTerm) ||
-                                apt.doctor.toLowerCase().includes(searchTerm) ||
-                                apt.id.toLowerCase().includes(searchTerm);
+            apt.doctor.toLowerCase().includes(searchTerm) ||
+            apt.id.toLowerCase().includes(searchTerm);
           const matchesStatus = (selectedStatus === 'ALL') || (apt.status === selectedStatus);
           const matchesPayment = (selectedPayment === 'ALL') || (apt.paymentStatus === selectedPayment);
 
@@ -161,7 +161,7 @@
 
           // Action Buttons construction
           let actionButtonsHTML = '';
-          
+
           if (apt.status === 'Confirmed') {
             actionButtonsHTML += `
               <button 
@@ -236,13 +236,13 @@
       // XSS Protection helper
       function escapeHtml(text) {
         if (!text) return '';
-        return text.replace(/[&<>"']/g, function(m) {
+        return text.replace(/[&<>"']/g, function (m) {
           return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
         });
       }
 
       // Global functions attached to window for row actions
-      window.updateAppointmentStatus = function(aptId, newStatus) {
+      window.updateAppointmentStatus = function (aptId, newStatus) {
         const appointments = getAppointments();
         const index = appointments.findIndex(a => a.id === aptId);
         if (index !== -1) {
@@ -252,7 +252,7 @@
         }
       };
 
-      window.markBillAsPaid = function(aptId) {
+      window.markBillAsPaid = function (aptId) {
         const appointments = getAppointments();
         const index = appointments.findIndex(a => a.id === aptId);
         if (index !== -1) {
@@ -272,4 +272,5 @@
     });
   </script>
 </body>
+
 </html>
